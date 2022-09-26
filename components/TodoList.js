@@ -23,6 +23,7 @@ const TodoList = () => {
     return(
     <div>
         {todos.map(todo => <Todo key={todo.id} 
+        id={todo.id}
         title={todo.title}
         detail={todo.detail}
         timestamp={todo.timestamp}
