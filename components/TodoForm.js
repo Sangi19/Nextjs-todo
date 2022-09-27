@@ -1,23 +1,49 @@
-import { collection, addDoc, serverTimestamp } from "@firebase/firestore"
+import { collection, addDoc, serverTimestamp,updateDoc,doc } from "@firebase/firestore"
 
 import { Button, TextField } from '@mui/material'
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { db } from "../firebase"
 import { TodoContext } from "../TodoContext"
 
 const TodoForm = () => {
-  const [todo, setTodo] = useState({title:'', detail:''})
- const {showAlert} = useContext(TodoContext)
+  const inputAreaRef=useRef();
+
+  const {showAlert, todo, setTodo} = useContext(TodoContext)
 
   const onSubmit= async() => {
-  const collectionRef= collection(db, "todos")
-  const docRef= await addDoc(collectionRef,{...todo, timestamp:serverTimestamp()})
-  setTodo({title:'', detail:''})
-  showAlert('success',`Todo with id ${docRef.id} is added successfully`)
-}
+    if(todo?.hasOwnProperty('timestamp')){
+      //update todo
+      const docRef= doc(db, "todos",todo.id)
+      const todoUpdated= {...todo, timestamp:serverTimestamp()}
+      updateDoc(docRef,todoUpdated)
+      setTodo({title:'', detail:''})
+      showAlert('info',`Todo with id ${todo.id} is updated successfully`)
+    }else {
+      const collectionRef= collection(db, "todos")
+      const docRef= await addDoc(collectionRef,{...todo, timestamp:serverTimestamp()})
+      setTodo({title:'', detail:''})
+      showAlert('success',`Todo with id ${docRef.id} is added successfully`)
+    }
+  }
+
+useEffect(() => {
+  const checkIfClickedOutside = e =>{
+    if(!inputAreaRef.current.contains(e.target)){
+      console.log('outside input area')
+      setTodo({title:'', detail:''})
+    } else {
+      console.log('inside input area')
+    }                                                                                  
+  }
+  document.addEventListener("mousedown", checkIfClickedOutside)
+  return () => {
+    document.removeEventListener("mousedown",checkIfClickedOutside)
+  } 
+}, [])
+
 
   return (
-    <div>
+    <div ref={inputAreaRef}>
         <TextField fullWidth label='title' margin='normal'
         value={todo.title}
         onChange={(e) => setTodo({...todo, title: e.target.value})}
@@ -26,7 +52,8 @@ const TodoForm = () => {
         value={todo.detail}
         onChange={(e) => setTodo({...todo, detail: e.target.value})}
         />
-        <Button onClick={onSubmit} variant="contained" sx={{mt:3}}>Add a new todo</Button>
+        <Button onClick={onSubmit} variant="contained" sx={{mt:3}}>{todo.hasOwnProperty('timestamp')? 'Update todo' : 'Add a new todo'} 
+        </Button>
     </div>
   )
 }
