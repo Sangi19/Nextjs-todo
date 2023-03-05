@@ -20,7 +20,7 @@ const TodoForm = () => {
       showAlert('info',`Todo with id ${todo.id} is updated successfully`)
     }else {
       const collectionRef= collection(db, "todos")
-      const docRef= await addDoc(collectionRef,{...todo, timestamp:serverTimestamp()})
+      const docRef= await addDoc(collectionRef,{...todo, timestamp:serverTimestamp(), favorites:false})
       setTodo({title:'', detail:''})
       showAlert('success',`Todo with id ${docRef.id} is added successfully`)
     }
@@ -52,8 +52,10 @@ useEffect(() => {
         value={todo.detail}
         onChange={(e) => setTodo({...todo, detail: e.target.value})}
         />
+        
         <Button onClick={onSubmit} variant="contained" sx={{mt:3}}>{todo.hasOwnProperty('timestamp')? 'Update todo' : 'Add a new todo'} 
         </Button>
+
     </div>
   )
 }
